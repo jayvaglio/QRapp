@@ -29,7 +29,8 @@ class Blockchain:
         self.chain = [self.create_genesis_block()]
 
     def create_genesis_block(self):
-        return Block(0, datetime.datetime.utcnow().isoformat(), 'Genesis Block', '0')
+        genesis_data = {"message": "Genesis Block"}
+        return Block(0, datetime.datetime.utcnow().isoformat(), json.dumps(genesis_data), '0')
 
     def latest_block(self):
         return self.chain[-1]
@@ -124,5 +125,8 @@ with tabs[2]:
     st.subheader("⛓ Blockchain Ledger")
     for block in st.session_state.ledger.chain:
         st.write(f"Block {block.index} | Hash: {block.hash[:12]}... | Prev: {block.previous_hash[:12]}...")
-        st.json(block.data)
+        try:
+            st.json(json.loads(block.data))
+        except:
+            st.write(block.data)
         st.markdown("---")
