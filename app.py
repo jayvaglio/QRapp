@@ -1,4 +1,3 @@
-
 import streamlit as st
 import qrcode
 import segno
@@ -16,7 +15,7 @@ if 'history' not in st.session_state:
 
 # Helper: Generate structured data with a unique code
 def generate_data():
-    unique_code = f"PRD-{uuid.uuid4().hex[:12].upper()}"
+    unique_code = f"enjoy-{uuid.uuid4().hex[:12].upper()}"
     return {
         "code": unique_code,
         "created": datetime.datetime.utcnow().isoformat() + 'Z',
@@ -50,7 +49,7 @@ def generate_dm_image(url):
 
 # Streamlit app layout
 st.set_page_config(page_title="Barcode Generator Web App")
-st.title("🔐 QR & Data Matrix Code Generator")
+st.title("🔐 QR Code Generator")
 
 tabs = st.tabs(["🔄 Generate", "📜 History"])
 
@@ -63,6 +62,7 @@ with tabs[0]:
         qr_image = generate_qr_image(url)
         dm_image = generate_dm_image(url)
 
+        # Save to history
         st.session_state.history.append({
             "url": url,
             "data": data,
@@ -75,11 +75,11 @@ with tabs[0]:
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("QR Code")
-            st.image(qr_image, caption=url, use_column_width=True)
+            st.image(qr_image, caption=url, use_container_width=True)
 
-        with col2:
-            st.subheader("Data Matrix")
-            st.image(dm_image, caption=url, use_column_width=True)
+        #with col2:
+        #    st.subheader("Data Matrix")
+        #    st.image(dm_image, caption=url, use_container_width=True)
 
         st.success(f"URL: {url}")
     else:
@@ -91,7 +91,8 @@ with tabs[1]:
         for i, entry in enumerate(reversed(st.session_state.history)):
             st.markdown(f"**{i+1}.** [{entry['url']}]({entry['url']})")
             st.json(entry['data'])
-            st.image(entry['qr_image'], caption=entry['url'], use_column_width=False)
+            st.image(entry['qr_image'], caption=entry['url'], use_container_width=False)
             st.markdown("---")
     else:
         st.info("No historical barcodes yet.")
+    
