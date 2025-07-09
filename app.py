@@ -103,10 +103,10 @@ with tabs[0]:
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("QR Code")
-            st.image(qr_image, caption=url, use_column_width=True)
+            st.image(qr_image, caption=url, use_container_width=True)
         #with col2:
          #   st.subheader("Data Matrix")
-          #  st.image(dm_image, caption=url, use_column_width=True)
+          #  st.image(dm_image, caption=url, use_container_width=True)
 
         st.success(f"URL: {url}")
 
