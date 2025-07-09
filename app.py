@@ -74,7 +74,7 @@ def generate_dm_image(url):
     buf = io.BytesIO()
     dm.save(buf, kind='png', scale=5)
     buf.seek(0)
-    return Image.open(buf. )
+    return Image.open(buf)
 
 # Layout
 st.set_page_config(page_title="Event ID Generator")
