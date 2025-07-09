@@ -29,7 +29,7 @@ class Blockchain:
         self.chain = [self.create_genesis_block()]
 
     def create_genesis_block(self):
-        genesis_data = {"message": "Genesis Block"}
+        genesis_data = {"message": "Hello, World!"}
         return Block(0, datetime.datetime.utcnow().isoformat(), json.dumps(genesis_data), '0')
 
     def latest_block(self):
@@ -47,7 +47,7 @@ if 'ledger' not in st.session_state:
 
 # Helpers
 def generate_data():
-    unique_code = f"PRD-{uuid.uuid4().hex[:12].upper()}"
+    unique_code = f"enjoy-{uuid.uuid4().hex[:12].upper()}"
     return {
         "code": unique_code,
         "created": datetime.datetime.utcnow().isoformat() + 'Z',
@@ -74,16 +74,16 @@ def generate_dm_image(url):
     buf = io.BytesIO()
     dm.save(buf, kind='png', scale=5)
     buf.seek(0)
-    return Image.open(buf)
+    return Image.open(buf. )
 
 # Layout
-st.set_page_config(page_title="Barcode Generator with Blockchain")
-st.title("🔐 QR & Data Matrix Generator with Ledger")
+st.set_page_config(page_title="Event ID Generator")
+st.title("🔐 Event ID Generator")
 
 tabs = st.tabs(["🔄 Generate", "📜 History", "⛓ Ledger"])
 
 with tabs[0]:
-    if st.button("Generate New Code"):
+    if st.button("Generate Event ID"):
         data, unique_code = generate_data()
         url = f"https://www.enjoyablyengaging.com/{unique_code}"
         qr_image = generate_qr_image(url)
@@ -104,9 +104,9 @@ with tabs[0]:
         with col1:
             st.subheader("QR Code")
             st.image(qr_image, caption=url, use_column_width=True)
-        with col2:
-            st.subheader("Data Matrix")
-            st.image(dm_image, caption=url, use_column_width=True)
+        #with col2:
+         #   st.subheader("Data Matrix")
+          #  st.image(dm_image, caption=url, use_column_width=True)
 
         st.success(f"URL: {url}")
 
