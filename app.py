@@ -85,19 +85,19 @@ def generate_dm_image(url):
     buf.seek(0)
     return Image.open(buf)
 
-# App Layout
+# Layout
 st.set_page_config(page_title="Barcode Generator with Blockchain")
 st.title("🔐 QR & Data Matrix Generator with Ledger")
 
-# Overview stats
+# Overview
 total_codes = len(st.session_state.history)
 total_scans = sum(st.session_state.scan_counts.values())
 st.markdown(f"📊 **Overview:** `{total_codes}` codes generated | `{total_scans}` total scans")
 
-# Tabs
+# Define tabs first
 tabs = st.tabs(["📝 Criteria", "🔄 Generate", "📜 History", "⛓ Ledger"])
 
-# Tab 1: Criteria input
+# Tab 0: Criteria input
 with tabs[0]:
     st.subheader("Enter QR Code Generation Criteria")
     st.session_state.form_data['location'] = st.text_input("📍 Location", st.session_state.form_data['location'])
@@ -105,12 +105,12 @@ with tabs[0]:
     sponsors_input = st.text_area("🤝 Sponsors (comma-separated)", value=",".join(st.session_state.form_data['sponsors']))
     st.session_state.form_data['sponsors'] = [s.strip() for s in sponsors_input.split(",") if s.strip()]
 
-# Tab 2: Generate
+# Tab 1: Generate
 with tabs[1]:
     if st.button("Generate New Code"):
         data, unique_code = generate_data(st.session_state.form_data)
-        encoded_data = compress_data(data)
         url = f"https://www.enjoyablyengaging.com/{unique_code}"
+        encoded_data = compress_data(data)
 
         qr_image = generate_qr_image(url)
         dm_image = generate_dm_image(url)
@@ -122,7 +122,7 @@ with tabs[1]:
         })
 
         st.session_state.ledger.add_block(json.dumps(data))
-        st.session_state.scan_counts[url] = 0  # Simulated scan counter
+        st.session_state.scan_counts[url] = 0
 
         st.subheader("Structured Data")
         st.json(data)
@@ -137,9 +137,9 @@ with tabs[1]:
 
         st.success(f"URL: {url}")
     else:
-        st.info("Click the button above to generate your first barcode.")
+        st.info("Use the 📝 Criteria tab to customize fields before generating.")
 
-# Tab 3: History
+# Tab 2: History
 with tabs[2]:
     st.subheader("📜 Historical Log")
     if st.session_state.history:
@@ -152,13 +152,9 @@ with tabs[2]:
     else:
         st.info("No historical barcodes yet.")
 
-# Tab 4: Blockchain Ledger
+# Tab 3: Ledger
 with tabs[3]:
     st.subheader("⛓ Blockchain Ledger")
     for block in st.session_state.ledger.chain:
         st.write(f"Block {block.index} | Hash: {block.hash[:12]}... | Prev: {block.previous_hash[:12]}...")
         try:
-            st.json(json.loads(block.data))
-        except:
-            st.write(block.data)
-        st.markdown("---")
