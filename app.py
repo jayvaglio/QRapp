@@ -158,3 +158,7 @@ with tabs[3]:
     for block in st.session_state.ledger.chain:
         st.write(f"Block {block.index} | Hash: {block.hash[:12]}... | Prev: {block.previous_hash[:12]}...")
         try:
+            st.json(json.loads(block.data))
+        except Exception:
+            st.write(block.data)
+        st.markdown("---")
