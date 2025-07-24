@@ -1,6 +1,5 @@
 import streamlit as st
 import qrcode
-import segno
 import uuid
 import json
 import zlib
@@ -28,7 +27,7 @@ class Blockchain:
         self.chain = [self.create_genesis_block()]
 
     def create_genesis_block(self):
-        genesis_data = {"message": "Genesis Block"}
+        genesis_data = {"message": "Enjoyably Engaging"}
         return Block(0, datetime.datetime.utcnow().isoformat(), json.dumps(genesis_data), '0')
 
     def latest_block(self):
@@ -54,7 +53,7 @@ if 'form_data' not in st.session_state:
 
 # Helper functions
 def generate_data(form_data):
-    unique_code = f"PRD-{uuid.uuid4().hex[:12].upper()}"
+    unique_code = f"enjoy-{uuid.uuid4().hex[:12].upper()}"
     return {
         "code": unique_code,
         "created": datetime.datetime.utcnow().isoformat() + 'Z',
@@ -78,26 +77,19 @@ def generate_qr_image(url):
     buf.seek(0)
     return Image.open(buf)
 
-def generate_dm_image(url):
-    dm = segno.make(url, micro=False)
-    buf = io.BytesIO()
-    dm.save(buf, kind='png', scale=5)
-    buf.seek(0)
-    return Image.open(buf)
-
 # Layout
-st.set_page_config(page_title="Barcode Generator with Blockchain")
-st.title("🔐 QR & Data Matrix Generator with Ledger")
+st.set_page_config(page_title="Event ID Ledger")
+st.title("🎫 Event ID Ledger")
 
 # Overview
 total_codes = len(st.session_state.history)
 total_scans = sum(st.session_state.scan_counts.values())
 st.markdown(f"📊 **Overview:** `{total_codes}` codes generated | `{total_scans}` total scans")
 
-# Define tabs first
-tabs = st.tabs(["📝 Criteria", "🔄 Generate", "📜 History", "⛓ Ledger"])
+# Define tabs
+tabs = st.tabs(["📝 Generate", "📜 History", "⛓ Ledger"])
 
-# Tab 0: Criteria input
+# Tab 0: Criteria + Generate
 with tabs[0]:
     st.subheader("Enter QR Code Generation Criteria")
     st.session_state.form_data['location'] = st.text_input("📍 Location", st.session_state.form_data['location'])
@@ -105,15 +97,12 @@ with tabs[0]:
     sponsors_input = st.text_area("🤝 Sponsors (comma-separated)", value=",".join(st.session_state.form_data['sponsors']))
     st.session_state.form_data['sponsors'] = [s.strip() for s in sponsors_input.split(",") if s.strip()]
 
-# Tab 1: Generate
-with tabs[1]:
     if st.button("Generate New Code"):
         data, unique_code = generate_data(st.session_state.form_data)
         url = f"https://www.enjoyablyengaging.com/{unique_code}"
         encoded_data = compress_data(data)
 
         qr_image = generate_qr_image(url)
-        dm_image = generate_dm_image(url)
 
         st.session_state.history.append({
             "url": url,
@@ -127,33 +116,28 @@ with tabs[1]:
         st.subheader("Structured Data")
         st.json(data)
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("QR Code")
-            st.image(qr_image, caption=url, use_column_width=True)
-        with col2:
-            st.subheader("Data Matrix")
-            st.image(dm_image, caption=url, use_column_width=True)
+        st.subheader("QR Code")
+        st.image(qr_image, caption=url, use_container_width=True)
 
         st.success(f"URL: {url}")
     else:
-        st.info("Use the 📝 Criteria tab to customize fields before generating.")
+        st.info("Use the fields above to customize your code before generating.")
 
-# Tab 2: History
-with tabs[2]:
+# Tab 1: History
+with tabs[1]:
     st.subheader("📜 Historical Log")
     if st.session_state.history:
         for i, entry in enumerate(reversed(st.session_state.history)):
             count = st.session_state.scan_counts.get(entry['url'], 0)
             st.markdown(f"**{i+1}.** [{entry['url']}]({entry['url']}) — 📈 Scans: `{count}`")
             st.json(entry['data'])
-            st.image(entry['qr_image'], caption=entry['url'], use_column_width=False)
+            st.image(entry['qr_image'], caption=entry['url'], use_container_width=False)
             st.markdown("---")
     else:
         st.info("No historical barcodes yet.")
 
-# Tab 3: Ledger
-with tabs[3]:
+# Tab 2: Ledger
+with tabs[2]:
     st.subheader("⛓ Blockchain Ledger")
     for block in st.session_state.ledger.chain:
         st.write(f"Block {block.index} | Hash: {block.hash[:12]}... | Prev: {block.previous_hash[:12]}...")
