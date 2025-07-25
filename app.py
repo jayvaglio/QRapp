@@ -1,3 +1,4 @@
+
 import streamlit as st
 import qrcode
 import uuid
@@ -36,6 +37,19 @@ class Blockchain:
     def add_block(self, data):
         new_block = Block(len(self.chain), datetime.datetime.utcnow().isoformat(), data, self.latest_block().hash)
         self.chain.append(new_block)
+
+    def to_dict(self):
+        return [block.__dict__ for block in self.chain]
+
+    @staticmethod
+    def from_dict(data):
+        blockchain = Blockchain()
+        blockchain.chain = []
+        for block_data in data:
+            block = Block(block_data['index'], block_data['timestamp'], block_data['data'], block_data['previous_hash'])
+            block.hash = block_data['hash']
+            blockchain.chain.append(block)
+        return blockchain
 
 # Initialize session state
 if 'history' not in st.session_state:
@@ -86,10 +100,10 @@ total_codes = len(st.session_state.history)
 total_scans = sum(st.session_state.scan_counts.values())
 st.markdown(f"📊 **Overview:** `{total_codes}` codes generated | `{total_scans}` total scans")
 
-# Define tabs
+# Define tabs first
 tabs = st.tabs(["📝 Generate", "📜 History", "⛓ Ledger"])
 
-# Tab 0: Criteria + Generate
+# Tab 0: Criteria input + Generate
 with tabs[0]:
     st.subheader("Enter QR Code Generation Criteria")
     st.session_state.form_data['location'] = st.text_input("📍 Location", st.session_state.form_data['location'])
@@ -113,6 +127,10 @@ with tabs[0]:
         st.session_state.ledger.add_block(json.dumps(data))
         st.session_state.scan_counts[url] = 0
 
+        # Auto-save ledger
+        with open("ledger.json", "w") as f:
+            f.write(json.dumps(st.session_state.ledger.to_dict(), indent=2))
+
         st.subheader("Structured Data")
         st.json(data)
 
@@ -121,7 +139,7 @@ with tabs[0]:
 
         st.success(f"URL: {url}")
     else:
-        st.info("Use the fields above to customize your code before generating.")
+        st.info("Use the fields above to customize your QR code before generating.")
 
 # Tab 1: History
 with tabs[1]:
@@ -139,6 +157,15 @@ with tabs[1]:
 # Tab 2: Ledger
 with tabs[2]:
     st.subheader("⛓ Blockchain Ledger")
+
+    # Upload option
+    uploaded_file = st.file_uploader("Upload Existing Ledger (ledger.json)", type=["json"])
+    if uploaded_file is not None:
+        ledger_data = json.load(uploaded_file)
+        st.session_state.ledger = Blockchain.from_dict(ledger_data)
+        st.success("Ledger loaded successfully.")
+
+    # Display ledger
     for block in st.session_state.ledger.chain:
         st.write(f"Block {block.index} | Hash: {block.hash[:12]}... | Prev: {block.previous_hash[:12]}...")
         try:
@@ -146,3 +173,7 @@ with tabs[2]:
         except Exception:
             st.write(block.data)
         st.markdown("---")
+
+    # Download option
+    ledger_json = json.dumps(st.session_state.ledger.to_dict(), indent=2)
+    st.download_button("Download Ledger", data=ledger_json, file_name="ledger.json", mime="application/json")
