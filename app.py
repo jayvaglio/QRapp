@@ -1,3 +1,4 @@
+
 import streamlit as st
 import qrcode
 import uuid
@@ -88,13 +89,18 @@ def generate_qr_image(url):
     buf = io.BytesIO()
     qr.save(buf, format='PNG')
     buf.seek(0)
-    return Image.open(buf)
+    return buf.getvalue(), Image.open(buf)
 
 # Layout
 st.set_page_config(page_title="Event ID Ledger")
 st.title("🎫 Event ID Ledger")
 
-# Define tabs first
+# Display Overview
+total_codes = len(st.session_state.history)
+total_scans = sum(st.session_state.scan_counts.values())
+st.markdown(f"📊 **Overview:** `{total_codes}` codes generated | `{total_scans}` total scans")
+
+# Tabs
 tabs = st.tabs(["📝 Generate", "📜 History", "⛓ Ledger"])
 
 # Tab 0: Criteria input + Generate
@@ -109,8 +115,7 @@ with tabs[0]:
         data, unique_code = generate_data(st.session_state.form_data)
         url = f"https://www.enjoyablyengaging.com/{unique_code}"
         encoded_data = compress_data(data)
-
-        qr_image = generate_qr_image(url)
+        qr_bytes, qr_image = generate_qr_image(url)
 
         st.session_state.history.append({
             "url": url,
@@ -130,6 +135,7 @@ with tabs[0]:
 
         st.subheader("QR Code")
         st.image(qr_image, caption=url, use_container_width=True)
+        st.download_button("📥 Copy QR Image", data=qr_bytes, file_name="qr_code.png", mime="image/png")
 
         st.success(f"URL: {url}")
     else:
@@ -152,6 +158,10 @@ with tabs[1]:
 with tabs[2]:
     st.subheader("⛓ Blockchain Ledger")
 
+    # Download option at the top
+    ledger_json = json.dumps(st.session_state.ledger.to_dict(), indent=2)
+    st.download_button("⬇️ Download Ledger", data=ledger_json, file_name="ledger.json", mime="application/json")
+
     # Upload option
     uploaded_file = st.file_uploader("Upload Existing Ledger (ledger.json)", type=["json"])
     if uploaded_file is not None:
@@ -167,12 +177,3 @@ with tabs[2]:
         except Exception:
             st.write(block.data)
         st.markdown("---")
-
-    # Download option
-    ledger_json = json.dumps(st.session_state.ledger.to_dict(), indent=2)
-    st.download_button("Download Ledger", data=ledger_json, file_name="ledger.json", mime="application/json")
-
-# Final Overview (after state updates)
-total_codes = len(st.session_state.history)
-total_scans = sum(st.session_state.scan_counts.values())
-st.markdown(f"📊 **Overview:** `{total_codes}` codes generated | `{total_scans}` total scans")
