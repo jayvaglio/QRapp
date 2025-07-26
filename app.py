@@ -1,4 +1,3 @@
-
 import streamlit as st
 import qrcode
 import uuid
@@ -95,11 +94,6 @@ def generate_qr_image(url):
 st.set_page_config(page_title="Event ID Ledger")
 st.title("🎫 Event ID Ledger")
 
-# Overview
-total_codes = len(st.session_state.history)
-total_scans = sum(st.session_state.scan_counts.values())
-st.markdown(f"📊 **Overview:** `{total_codes}` codes generated | `{total_scans}` total scans")
-
 # Define tabs first
 tabs = st.tabs(["📝 Generate", "📜 History", "⛓ Ledger"])
 
@@ -177,3 +171,8 @@ with tabs[2]:
     # Download option
     ledger_json = json.dumps(st.session_state.ledger.to_dict(), indent=2)
     st.download_button("Download Ledger", data=ledger_json, file_name="ledger.json", mime="application/json")
+
+# Final Overview (after state updates)
+total_codes = len(st.session_state.history)
+total_scans = sum(st.session_state.scan_counts.values())
+st.markdown(f"📊 **Overview:** `{total_codes}` codes generated | `{total_scans}` total scans")
